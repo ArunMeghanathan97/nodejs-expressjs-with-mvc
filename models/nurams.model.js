@@ -8,7 +8,7 @@ class Nurams{
     }
 
     save = (result) => {
-        var me = this;
+        var me       = this;
         var query    = "INSERT INTO "+ me.table +" SET ";
         var saveset  = [];
         if ( typeof me.model === 'object' && me.model !== null ){
@@ -29,7 +29,7 @@ class Nurams{
               return;
         });
     };
-    
+
     set = (obj) =>{
         this.model= { ...this.model, ...obj };
     }
