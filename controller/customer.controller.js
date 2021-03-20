@@ -1,25 +1,22 @@
-const Customer = require('../models/customer.model');
+var CustomerRepository = require('../repoistory/customer.repoistory');
 
 class CustomerController{
 
     create = function(req,res){
-        // Validate request
+
      if (!req.body) {
-       res.status(400).send({
-         message: "Content can not be empty!"
-       });
+       res.status(400).send({ error : true, data :null , msg : "Content can not be empty!" });
      }
 
-     var customer = new Customer();
-     
-     customer.unrams.set({ name : "Arun" });
-   
-     customer.save((errr,resp)=>{
-       if ( !errr ){
-           res.send(resp);
-       }
+     var customerRepository = new CustomerRepository();
+     customerRepository.create(req,(dataset)=>{
+        if ( dataset.flg ){
+            res.status(200).send({ error : false, data : dataset.data, msg : "" });
+         }else{
+            res.status(200).send({ error : true, data : null, msg : "something went wrong..! " });
+         }
      });
-   
+
    }
 }
 
