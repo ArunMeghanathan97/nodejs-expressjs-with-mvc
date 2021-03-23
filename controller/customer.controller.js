@@ -9,7 +9,7 @@ class CustomerController{
      }
 
      var customerRepository = new CustomerRepository();
-     customerRepository.create(req,(dataset)=>{
+     customerRepository.create(req.query,(dataset)=>{
         if ( dataset.flg ){
             res.status(200).send({ error : false, data : dataset.data, msg : "" });
          }else{
