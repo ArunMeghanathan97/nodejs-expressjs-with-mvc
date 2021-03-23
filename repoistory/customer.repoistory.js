@@ -9,6 +9,7 @@ class CustomerRepository{
         var customer = new Customer();
         customer.id  = 1
         customer.set({ name : request.name });
+        
         customer.save((errr,resp)=>{
           if ( !errr ){
             dataset({ flg : true , data : resp.model });
