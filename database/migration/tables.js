@@ -6,8 +6,7 @@ class Table {
     constructor(){}
 
     create = (req,res) => {
-        (new customer(req,res));
-        (new user(req,res));
+        (new customer(req,res)).trigger();
         res.send(" tables is created.");
     }
 

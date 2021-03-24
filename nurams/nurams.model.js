@@ -3,12 +3,17 @@ const sql = require('../database/db');
 class Nurams{
 
     constructor(){
-        this.model = {};
-        this.column   = [];
-        this.id    = 0;
+        this.model      = {};
+        this.column     = '';
+        this.q          = '';
+        this.limitc     = '';
+        this.orderc     = '';
+        this.wherec     = []
+        this.orwherec   = []
+        this.id         = 0;
     }
 
-    query = (sql,result) => {
+    rawQuery = (sql,result) => {
         sql.query(sql,(err,res)=>{
             if (err) {
                 result(err,null);
@@ -54,22 +59,151 @@ class Nurams{
         });
     };
 
-    delete = () => {
+    select = (...args) => {
+        if ( typeof args != undefined && args != null ){
+            if( Array.isArray(args) ){
+                this.column = args.join(',');
+            }
+        }
+        return this;
+    }
+
+    where = (args) => {
+        let me = this;
+        if( Array.isArray(args) ){
+            if ( args.length > 0 ){
+                if ( Array.isArray(args[0]) ){
+                    args.forEach((ele,ind)=>{
+                        if ( Array.isArray(ele) && ele.length == 3 ){
+                            me.wherec.push(ele[0]+" "+ele[1]+" "+ele[2]);
+                        }
+                    });
+                }else{
+                    if(typeof args[0] == "string"){
+                        if ( args.length == 2 ){
+                            me.wherec.push(args[0]+" = "+args[1]);
+                        }else if(args.length == 4){
+                            me.wherec.push(args[0]+" "+args[1]+" "+args[2]);
+                        }
+                    }
+                }
+            }
+        }else if (typeof args == "number"){
+            me.wherec.push("id = "+args);
+        }
+    }
+
+    orWhere = (args) => {
+        let me = this;
+        if( Array.isArray(args) ){
+            if ( args.length > 0 ){
+                if ( Array.isArray(args[0]) ){
+                    args.forEach((ele,ind)=>{
+                        if ( Array.isArray(ele) && ele.length == 3 ){
+                            me.orwherec.push(ele[0]+" "+ele[1]+" "+ele[2]);
+                        }
+                    });
+                }else{
+                    if(typeof args[0] == "string"){
+                        if ( args.length == 2 ){
+                            me.orwherec.push(args[0]+" = "+args[1]);
+                        }else if(args.length == 4){
+                            me.orwherec.push(args[0]+" "+args[1]+" "+args[2]);
+                        }
+                    }
+                }
+            }
+        }else if (typeof args == "number"){
+            me.orwherec.push("id = "+args);
+        }
+    }
+
+    setCondition = () => {
+        let me = this;
+        if(me.column != ""){
+            me.q = "SELECT "+me.column+" FROM "+me.table+"";
+        }else{
+            me.q = "SELECT * FROM "+me.table+"";
+        }
+        if ( me.wherec.length > 0 ){
+            me.q += " WHERE "+me.wherec.join(' AND ');
+            if ( me.orwherec.length > 0 ){
+                me.q += " AND "+me.orwherec.join(' OR ');
+            }
+        }else{
+            me.q += " WHERE "+me.orwherec.join(' OR ');
+        }
+    }
+
+    limit = (from,count) => { this.limitc = " LIMIT "+from+" , "+count; }
+
+    setLimit = () =>{ this.q += this.limitc; }
+
+    orderBy = (column_args,order) => {
+        if ( Array.isArray(column_args) ){
+            this.orderc = " "+column_args.join(' , ')+ " ORDER BY "+order;
+        }else{
+            this.orderc = " "+column_args+ " ORDER BY "+order;
+        }
+    }
+
+    setOrderBy = () => { this.q += this.orderc; }
+
+    get = async () => {
+        let me = this;
+
+        me.setCondition();
+        me.setLimit();
+        me.setOrderBy();
+
+        sql.query(sql,(err,res,fields)=>{
+            if (err) {
+                return [];
+              }else{
+                  let ret = [];
+                  if ( Array.isArray(res) ){
+                      res.forEach((ele,ind)=>{
+                          let obj = new Nurams();
+                          obj.set(ele);
+                          obj.id = ele.id;
+                          ret.push(obj);
+                      });
+                  }
+                return ret;
+              }
+        });
+    }
+
+    getRaw = async () => {
+        let me = this;
+        if(me.column != ""){
+            me.q = "SELECT "+me.column+" FROM "+me.table+"";
+        }else{
+            me.q = "SELECT * FROM "+me.table+"";
+        }
+        sql.query(sql,(err,res,fields)=>{
+            if (err) {
+                return [];
+              }else{
+                return res;
+              }
+        });
+    }
+
+    delete = async () => {
         var me       = this;
-        var query    = "";
         if (me.id != 0){
             query    = "DELETE FROM "+ me.table +" WHERE id = "+me.id;
             sql.query(sql,(err,res)=>{
                 if (err) {
-                    result(err,null);
+                    return {error : err, flg : false};
                   }else{
-                    result(null,res);
+                      return {error : err, flg : true};
                   }
             });
         }else{
-            result({error : "id missing"},null);
+            return {error : "id missing", flg : false};
         }
-
     }
 
     set = (obj) =>{
