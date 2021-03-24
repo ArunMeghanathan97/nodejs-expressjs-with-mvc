@@ -1,5 +1,5 @@
 const CustomerController = require('../controller/customer.controller');
-const Table = require('../migration/database/tables');
+const Table = require('../database/migration/tables');
 
 module.exports = app => {
 

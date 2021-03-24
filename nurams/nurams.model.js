@@ -1,4 +1,4 @@
-const sql = require('./db');
+const sql = require('../database/db');
 
 class Nurams{
 

@@ -1,4 +1,4 @@
-const Nurams = require('./nurams.model');
+const Nurams = require('../nurams/nurams.model');
 
 class User extends Nurams{
 
