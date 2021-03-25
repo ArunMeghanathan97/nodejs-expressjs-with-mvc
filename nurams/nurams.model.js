@@ -4,7 +4,7 @@ class Nurams{
 
     constructor(){
         this.model      = {};
-        this.column     = '';
+        this.column     = [];
         this.q          = '';
         this.limitc     = '';
         this.orderc     = '';
@@ -218,58 +218,60 @@ class Nurams{
         return this.model;
     }
 
-    struct = (result) => {
+    struct = () => {
         var me      = this;
-        if(typeof me.migration == undefined ) return;
+        return new Promise((resolve,reject)=>{
+            if(typeof me.migration == undefined ) resolve({});
 
-        var structls = [];
-        if ( typeof me.column != null && typeof me.column != undefined){
-            for ( var i in me.column ){
-                var colst = me.column[i];
-                var colval = "";
-                if ( colst.type == 1 ){
-                    colval  = " `"+colst.name+"` int("+(colst.size)+") NOT NULL ";
-                }else if ( colst.type == 2 ){
-                    colval  = " `"+colst.name+"` varchar("+(colst.size)+") NOT NULL ";
-                }else if ( colst.type == 3 ){
-                    colval  = " `"+colst.name+"` text NOT NULL ";
-                }else if ( colst.type == 4 ){
-                    colval  = " `"+colst.name+"` date NOT NULL ";
-                }else if ( colst.type == 5 ){
-                    colval  = " `"+colst.name+"` timem NOT NULL ";
-                }else if ( colst.type == 6 ){
-                    colval  = " `"+colst.name+"` datetime NOT NULL ";
-                }else if ( colst.type == 7 ){
-                    colval  = " `"+colst.name+"` mediumtext NOT NULL ";
-                }else if ( colst.type == 8 ){
-                    colval  = " `"+colst.name+"` longtext NOT NULL ";
-                }else if ( colst.type == 9 ){
-                    colval  = " `"+colst.name+"` decimal("+colst.size+","+colst.len+") NOT NULL ";
-                }else if ( colst.type == 10 ){
-                    colval  = " `"+colst.name+"` float("+colst.size+","+colst.len+") NOT NULL ";
-                }
-                if ( colst.default == 1 && colval != ""){
-                    colval += "DEFAULT '"+colst.defaultval+"' "
-                }
-                if ( colval != "" ){
-                    structls.push(colval);
+            var structls = [];
+            if ( typeof me.column != null && typeof me.column != undefined){
+                for ( var i in me.column ){
+                    var colst = me.column[i];
+                    var colval = "";
+                    if ( colst.type == 1 ){
+                        colval  = " `"+colst.name+"` int("+(colst.size)+") NOT NULL ";
+                    }else if ( colst.type == 2 ){
+                        colval  = " `"+colst.name+"` varchar("+(colst.size)+") NOT NULL ";
+                    }else if ( colst.type == 3 ){
+                        colval  = " `"+colst.name+"` text NOT NULL ";
+                    }else if ( colst.type == 4 ){
+                        colval  = " `"+colst.name+"` date NOT NULL ";
+                    }else if ( colst.type == 5 ){
+                        colval  = " `"+colst.name+"` timem NOT NULL ";
+                    }else if ( colst.type == 6 ){
+                        colval  = " `"+colst.name+"` datetime NOT NULL ";
+                    }else if ( colst.type == 7 ){
+                        colval  = " `"+colst.name+"` mediumtext NOT NULL ";
+                    }else if ( colst.type == 8 ){
+                        colval  = " `"+colst.name+"` longtext NOT NULL ";
+                    }else if ( colst.type == 9 ){
+                        colval  = " `"+colst.name+"` decimal("+colst.size+","+colst.len+") NOT NULL ";
+                    }else if ( colst.type == 10 ){
+                        colval  = " `"+colst.name+"` float("+colst.size+","+colst.len+") NOT NULL ";
+                    }
+                    if ( colst.default == 1 && colval != ""){
+                        colval += "DEFAULT '"+colst.defaultval+"' "
+                    }
+                    if ( colval != "" ){
+                        structls.push(colval);
+                    }
                 }
             }
-        }
-        if ( structls.length > 0 ){
-            var query = "SET AUTOCOMMIT = 0; START TRANSACTION; CREATE TABLE "+me.table+" (" + structls.join(' , ')+" );";
-            query += "ALTER TABLE "+me.table+" ADD PRIMARY KEY (`id`);"
-            query += "ALTER TABLE "+me.table+" MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;COMMIT;"
-            sql.query(query,(err,res)=>{
-                if (err) {
-                    result({error : err});
-                  }else{
-                    result({error : null});
-                  }
-            });
-        }else{
-            result({error : "no"});
-        }
+            if ( structls.length > 0 ){
+                var query = "SET AUTOCOMMIT = 0; START TRANSACTION; CREATE TABLE "+me.table+" (" + structls.join(' , ')+" );";
+                query += "ALTER TABLE "+me.table+" ADD PRIMARY KEY (`id`);"
+                query += "ALTER TABLE "+me.table+" MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;COMMIT;"
+                sql.query(query,(err,res)=>{
+                    if (err) {
+                        resolve({error : err});
+                      }else{
+                        resolve({error : null});
+                      }
+                });
+            }else{
+                resolve({error : "no"});
+            }
+        });
     }
 
     int = (name,size=0) => {

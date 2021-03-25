@@ -1,6 +1,6 @@
-const CustomerModel = require('../../models/Customer.model.js');
+const UserModel = require('../../models/User.model.js');
 
-class Customer extends CustomerModel{
+class User extends UserModel{
 
       migration = 1;
 
@@ -8,7 +8,7 @@ class Customer extends CustomerModel{
          super(); 
          var me = this; 
          me.int('id') 
-         me.string('name'); 
+         // me.string('name'); 
          return me; 
      }
 
@@ -20,4 +20,4 @@ class Customer extends CustomerModel{
 
 }
 
-(new Customer()).trigger();
+(new User()).trigger();

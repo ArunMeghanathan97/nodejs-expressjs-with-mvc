@@ -1,5 +1,8 @@
 
 const fs = require('fs');
+const { resolve } = require('path');
+const util = require('util');
+const exec = util.promisify(require('child_process').exec);
 
 class NuramsCmd{
 
@@ -14,36 +17,35 @@ class NuramsCmd{
 
     }
 
-     trigger = async () => {
-        if ( this.arg[2] == "controller" ){
-            this.controller();
-        }
-        if ( this.arg[2] == "model" ){
-            this.model();
-        }
-        if ( this.arg[2] == "repoistory" ){
-            this.repoistory();
-        }
-        if ( this.arg[2] == "migrate" ){
-            await this.migrate();
-        }
+     trigger = () => {
+         return new Promise((resolve,reject)=>{
+            if ( this.arg[2] == "controller" ){
+                this.controller();
+                resolve(1);
+            }
+            if ( this.arg[2] == "model" ){
+                this.model();
+                resolve(1);
+            }
+            if ( this.arg[2] == "repoistory" ){
+                this.repoistory();
+                resolve(1);
+            }
+            if ( this.arg[2] == "migrate" ){
+                this.migrate();
+                resolve(1);
+            }    
+         });
     }
 
-     migrate = async () => {
+     migrate = async (ret) => {
         let me = this;
-        let ll =  await me.getfile();
-        var writeStream = fs.createWriteStream(me.dir+'/database/migration/tables.js');
-        ll.forEach((element,index)=>{
-            if (element != "tables") writeStream.write("const "+element+" = require('./"+element+"');\n");
-        });
-        writeStream.write("class Table {\n  constructor(){ \n");
-        ll.forEach((element,index)=>{
-            if (element != "tables") writeStream.write("     (new "+element+"()).trigger(); \n");
-        });
-        writeStream.write("   } \n} \n module.exports = Table;");
+//        await me.getfile();
+       let list = await me.getfiles();
+       await me.callBack(list)
     }
 
-    getfile = () => {
+    getfiles = () => {
         let me = this;
         return new Promise((resolve, reject)=>{
             let filelist = [];
@@ -54,6 +56,41 @@ class NuramsCmd{
                resolve(filelist);
              });
         });
+    }
+
+    getfile = () => {
+        let me = this;
+        return new Promise((resolve, reject)=>{
+            fs.readdir(me.dir+'/database/migration/', (err, files) => {
+               files.forEach( async (file) => {
+                 let element = file.split('.')[0];
+                 console.log("migrating table ("+element+")..");
+                 await exec("node ./database/migration/"+element, (error, stdout, stderr) => {
+                     console.log("migrating table ("+element+") completed.");
+                 });
+               });
+               resolve(1);
+             });
+        });
+    }
+
+    callBack(list){
+        if ( Array.isArray(list) ){
+            if ( list.length > 0 ){
+                let c = list[0];
+                console.log("migrating table ("+c+")..");
+                exec("node ./database/migration/"+c, (error, stdout, stderr) => {
+                    console.log("migrating table ("+c+") completed.");
+                    let l = [];
+                    list.forEach((e,i)=>{
+                        if ( i > 0 ) l.push(e);
+                    });
+                    if ( l.length > 0) this.callBack(l);
+                    else console.log("migration completed..");
+                });
+            }
+        }
+        return "oo";
     }
 
     controller = () => {
@@ -112,20 +149,13 @@ class NuramsCmd{
                 writeStream.write("\n\n");
                 writeStream.write("     trigger = async () =>{ \n");
                 writeStream.write("         var me = this; \n");
-                writeStream.write("         await Promise((resolve,reject)=>{ \n");
-                writeStream.write("             me.struct((err)=>{ \n");
-                writeStream.write("                 if ( !err.error ){ \n");
-                writeStream.write("                     resolve(me.table+'table is created.<br>'); \n");
-                writeStream.write("                 }else{ \n");
-                writeStream.write("                     resolve(me.table+'table is not created.<br>'); \n");
-                writeStream.write("                 } \n");
-                writeStream.write("             }); \n");
-                writeStream.write("         }); \n");
+                writeStream.write("         await me.struct(); \n");
+                writeStream.write("         return 1;\n");
                 writeStream.write("     }");
                 writeStream.write("\n\n");
                 writeStream.write("}");
                 writeStream.write("\n\n");
-                writeStream.write("module.exports = "+me.arg[3]+"Model;");
+                writeStream.write("module.exports = "+me.arg[3]+";");
                 writeStream.end();        
             }
         }
