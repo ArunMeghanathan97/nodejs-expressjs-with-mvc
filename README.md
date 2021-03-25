@@ -13,7 +13,7 @@
     </li>
     <li>
         <p>3. Create repoistory class </p>
-        <pre>node nurams controller [repoistory_name]</pre>
+        <pre>node nurams repoistory [repoistory_name]</pre>
     </li>
     <li>
       <p> 4. Database migration </p>
