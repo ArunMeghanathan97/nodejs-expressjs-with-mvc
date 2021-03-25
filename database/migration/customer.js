@@ -1,30 +1,30 @@
-const Customer = require('../../models/customer.model');
+const CustomerModel = require('../../models/Customer.model.js');
 
-class customer extends Customer{
+class Customer extends CustomerModel{
 
-    migration = 1;
+      migration = 1;
 
-    constructor(req,res){
-        super();
-        var me = this;
-        me.int("id")
-        .string("name");
-        return me;
-    }
+     constructor(){ 
+         super(); 
+         var me = this; 
+         me.int('id') 
+         me.string('name'); 
+         return me; 
+     }
 
-    trigger = () =>{
-        let me  = this;
-        me.struct((err)=>{
-            if ( !err.error ){
-                res.writeHead(200);
-                res.end(me.table+"table is created.<br>");
-//                    res.status(200).send({ error : false,  msg : me.table+" table is created." });
-                }else{
-//                    res.status(200).send({ error : true, msg : me.table+" table not created..!" });
-                }
-            });
-    }
+     trigger = async () =>{ 
+         var me = this; 
+         await Promise((resolve,reject)=>{ 
+             me.struct((err)=>{ 
+                 if ( !err.error ){ 
+                     resolve(me.table+'table is created.<br>'); 
+                 }else{ 
+                     resolve(me.table+'table is not created.<br>'); 
+                 } 
+             }); 
+         }); 
+     }
 
 }
 
-module.exports = customer;
+module.exports = CustomerModel;

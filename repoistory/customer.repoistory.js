@@ -1,4 +1,4 @@
-const Customer = require('../models/customer.model');
+const CustomerModel = require('../models/customer.model');
 
 class CustomerRepository{
 
@@ -6,7 +6,7 @@ class CustomerRepository{
 
     create = (request,dataset) => {
 
-        var customer = new Customer();
+        var customer = new CustomerModel();
         customer.id  = 1
         customer.set({ name : request.name });
         
@@ -23,7 +23,7 @@ class CustomerRepository{
     }
 
     getCustomer = async () => {
-      var customer = new Customer();
+      var customer = new CustomerModel();
       customer.id  = 1
       customer.set({ name : request.name });
       

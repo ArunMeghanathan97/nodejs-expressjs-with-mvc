@@ -1,13 +1,14 @@
 const Nurams = require('../nurams/nurams.model');
 
-class Customer extends Nurams{
+class CustomerModel  extends Nurams{
 
-    table = "customer";
+     table = 'customers';
 
-    constructor(){
-        super();
-    }
+     constructor(){ 
+         super(); 
+         // write code here.. 
+     }
 
 }
 
-module.exports = Customer;
+module.exports = CustomerModel;
