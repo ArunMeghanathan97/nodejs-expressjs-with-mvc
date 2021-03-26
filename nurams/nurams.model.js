@@ -34,7 +34,7 @@ class Nurams{
         var saveset  = [];
         if ( typeof me.model === 'object' && me.model !== null ){
             for( var key in me.model ){
-               if(key != 'id') saveset.push(key+"='"+me.model[key]+"'");
+               if(key != 'id') saveset.push(key+"="+me.model[key]+"");
             }
         }
         if ( saveset.length > 0 ){
@@ -118,20 +118,29 @@ class Nurams{
         }
     }
 
-    setCondition = () => {
+    setField = () => {
         let me = this;
-        if(me.column != ""){
-            me.q = "SELECT "+me.column+" FROM "+me.table+"";
+        if(me.column.length > 0){
+            me.q = "SELECT "+me.column.join(',')+" FROM "+me.table+"";
         }else{
             me.q = "SELECT * FROM "+me.table+"";
         }
+    }
+
+    setCondition = () => {
+        let me = this;
         if ( me.wherec.length > 0 ){
             me.q += " WHERE "+me.wherec.join(' AND ');
             if ( me.orwherec.length > 0 ){
                 me.q += " AND "+me.orwherec.join(' OR ');
             }
         }else{
-            me.q += " WHERE "+me.orwherec.join(' OR ');
+            if ( me.orwherec.length > 0 ){
+                me.q += " AND "+me.orwherec.join(' OR ');
+            }
+        }
+        if (me.orwherec.length == 0  && me.wherec.length == 0 ){
+            me.q += " WHERE id = "+me.id;
         }
     }
 
@@ -149,61 +158,60 @@ class Nurams{
 
     setOrderBy = () => { this.q += this.orderc; }
 
-    get = async () => {
+    results = async () => {
         let me = this;
-
-        me.setCondition();
-        me.setLimit();
-        me.setOrderBy();
-
-        sql.query(sql,(err,res,fields)=>{
-            if (err) {
-                return [];
-              }else{
-                  let ret = [];
-                  if ( Array.isArray(res) ){
-                      res.forEach((ele,ind)=>{
-                          let obj = new Nurams();
-                          obj.set(ele);
-                          obj.id = ele.id;
-                          ret.push(obj);
-                      });
+        return new Promise( async (resolve,reject)=>{
+            me.setField();
+            me.setCondition();
+            me.setOrderBy();
+            me.setLimit();
+            await sql.query(me.q,(err,res,field)=>{    
+                if (!err) {
+                    resolve({flg : true, data : res});
+                  }else{
+                    resolve({flg : false, data : null});
                   }
-                return ret;
-              }
+            });
         });
     }
 
-    getRaw = async () => {
+    first = async () => {
         let me = this;
-        if(me.column != ""){
-            me.q = "SELECT "+me.column+" FROM "+me.table+"";
-        }else{
-            me.q = "SELECT * FROM "+me.table+"";
-        }
-        sql.query(sql,(err,res,fields)=>{
-            if (err) {
-                return [];
-              }else{
-                return res;
-              }
+        return new Promise( async (resolve,reject)=>{
+            me.setCondition();
+            me.setOrderBy();
+            me.q += " LIMIT 0,1 ";
+            await sql.query(me.q,(err,res,field)=>{    
+                if (!err) {
+                    if (Array.isArray(res)){
+                        if(res.length > 0){
+                            resolve({flg : true, data : res[0]});
+                        }
+                    }
+                  }else{
+                    resolve({flg : false, data : null});
+                  }
+            });
         });
     }
 
     delete = async () => {
         var me       = this;
-        if (me.id != 0){
-            query    = "DELETE FROM "+ me.table +" WHERE id = "+me.id;
-            sql.query(sql,(err,res)=>{
-                if (err) {
-                    return {error : err, flg : false};
-                  }else{
-                      return {error : err, flg : true};
-                  }
-            });
-        }else{
-            return {error : "id missing", flg : false};
-        }
+        return new Promise((resolve,reject)=>{
+            if (me.id != 0){
+                me.q    = "DELETE FROM "+ me.table;
+                me.setCondition();
+                sql.query(me.q,(err,res)=>{
+                    if (err) {
+                        resolve({flg : false});
+                      }else{
+                        resolve({flg : true});
+                      }
+                });
+            }else{
+                resolve({flg : false});
+            }
+        });
     }
 
     set = (obj) =>{
@@ -216,6 +224,12 @@ class Nurams{
 
     getObjects(){
         return this.model;
+    }
+
+    setObject = (param) => {
+        var me      = this;
+        me.model    = {...me.model, param };
+        me.id       = param.id;
     }
 
     struct = () => {

@@ -95,7 +95,7 @@ class NuramsCmd{
 
     controller = () => {
         let me   = this;
-        var writeStream = fs.createWriteStream(me.dir+'/controller/'+me.arg[3]+'.controller.js');
+        var writeStream = fs.createWriteStream(me.dir+'/controller/'+me.arg[3].toString().toLowerCase()+'.controller.js');
         writeStream.write("\n\n");
         writeStream.write("class "+me.arg[3]+"Controller {");
         writeStream.write("\n\n");
@@ -113,7 +113,7 @@ class NuramsCmd{
     model = () =>{
         let me   = this;
         let tablename = ( (typeof me.arg[4] == undefined||me.arg[4]==null)?me.arg[3].toString().toLowerCase():me.arg[4].toString());
-        var writeStream = fs.createWriteStream(me.dir+'/models/'+me.arg[3]+'.model.js');
+        var writeStream = fs.createWriteStream(me.dir+'/models/'+me.arg[3].toString().toLowerCase()+'.model.js');
         writeStream.write("const Nurams = require('../nurams/nurams.model');")
         writeStream.write("\n\n");
         writeStream.write("class "+me.arg[3]+"Model  extends Nurams{");
@@ -131,9 +131,9 @@ class NuramsCmd{
         writeStream.end();
         console.log("model created..!");
         if ( typeof me.arg[5] != "undefined" ){
-            if (me.arg[5] == "--migrate-table"){
+            if (me.arg[5] == "--migrate-table-with-rep"){
                 writeStream = fs.createWriteStream(me.dir+'/database/migration/'+me.arg[3]+'.js');
-                writeStream.write("const "+me.arg[3]+"Model = require('../../models/"+me.arg[3]+".model.js');");
+                writeStream.write("const "+me.arg[3]+"Model = require('../../models/"+me.arg[3].toString().toLowerCase()+".model.js');");
                 writeStream.write("\n\n");
                 writeStream.write("class "+me.arg[3]+" extends "+me.arg[3]+"Model{");
                 writeStream.write("\n\n");
@@ -156,14 +156,30 @@ class NuramsCmd{
                 writeStream.write("}");
                 writeStream.write("\n\n");
                 writeStream.write("module.exports = "+me.arg[3]+";");
-                writeStream.end();        
+                writeStream.end();
+
+                var writeStream = fs.createWriteStream(me.dir+'/repoistory/'+me.arg[3].toString().toLowerCase()+'.repoistory.js');
+                writeStream.write("const "+me.arg[3]+"Model = require('../../models/"+me.arg[3].toString().toLowerCase()+".model.js');");
+                writeStream.write("\n\n\n");
+                writeStream.write("class "+me.arg[3]+"Repository {");
+                writeStream.write("\n\n");
+                writeStream.write("     constructor(){ \n");
+                writeStream.write("         // write code here.. \n");
+                writeStream.write("     }\n");
+                writeStream.write("\n");
+                writeStream.write("}");
+                writeStream.write("\n\n");
+                writeStream.write("module.exports = "+me.arg[3]+"Repository;");
+                writeStream.end();
+                console.log("repository created..!");
+
             }
         }
     }
 
     repoistory = () =>{
         let me   = this;
-        var writeStream = fs.createWriteStream(me.dir+'/repoistory/'+me.arg[3]+'.repoistory.js');
+        var writeStream = fs.createWriteStream(me.dir+'/repoistory/'+me.arg[3].toString().toLowerCase()+'.repoistory.js');
         writeStream.write("\n\n\n");
         writeStream.write("class "+me.arg[3]+"Repository {");
         writeStream.write("\n\n");
